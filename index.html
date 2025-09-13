@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MVWS Calculator Tool 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #22d3ee;
+      --accent2: #a78bfa;
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --border: #1f2937;
+      --chip: #0ea5e9;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 10% -20%, rgba(34,211,238,0.15), transparent 50%),
+                  radial-gradient(900px 600px at 110% 10%, rgba(167,139,250,0.12), transparent 40%),
+                  var(--bg);
+      color: var(--text);
+    }
+    header {
+      padding: 28px 20px 10px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+    }
+    .title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .grid {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+    }
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0)) , var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+    }
+    .section-title {
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .input {
+      display: grid; gap: 8px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      padding: 12px; border-radius: 12px;
+    }
+    .input label { font-size: 12px; color: var(--muted); }
+    .input input {
+      width: 100%; padding: 10px 12px;
+      border-radius: 10px; border: 1px solid var(--border);
+      background: #0b1220; color: var(--text); outline: none;
+    }
+    .toolbar {
+      display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;
+    }
+    button {
+      border: 1px solid var(--border); background: #0b1220; color: var(--text);
+      padding: 10px 14px; border-radius: 10px; cursor: pointer;
+    }
+    button.primary { background: linear-gradient(180deg, #1f2937, #0b1220); border-color: #263245; }
+    button.accent { background: linear-gradient(180deg, rgba(34,211,238,.15), rgba(34,211,238,.05)); border-color: rgba(34,211,238,.25); }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .chip { border:1px solid var(--border); background:#0b1220; padding:6px 10px; border-radius:999px; font-size:12px; color:var(--muted);}
+    table {
+      width: 100%; border-collapse: collapse; margin-top: 10px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px; text-align: left; vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+    .kv { display:grid; grid-template-columns: 1.4fr 1fr; gap:8px; }
+    .kv div { background: rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:8px; padding:8px 10px; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .ok { color: var(--ok); }
+    .err { color: var(--err); }
+    footer { margin-top: 16px; color: var(--muted); font-size: 12px; }
+    @media print {
+      body { background: white; color: black; }
+      .card { box-shadow: none; }
+      .grid { grid-template-columns: 1fr; }
+      header .subtitle { color: #111; }
+      .chip { display:none; }
+      button, .toolbar { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="container">
+    <div class="title">MVWS Calculator Tool 2 <span class="chip">v1</span></div>
+    <div class="subtitle">Medium Velocity Water Spray Calculator — inputs on the left, results & BOM on the right. Based on your Excel logic.</div>
+  </header>
+
+  <div class="container grid">
+    <section class="card">
+      <div class="section-title">Inputs</div>
+      <div id="inputs" class="inputs"></div>
+      <div class="toolbar">
+        <button id="reset">Reset</button>
+        <button id="calc" class="primary">Calculate</button>
+        <button id="pdf" class="accent">Download PDF</button>
+      </div>
+      <div class="chips" style="margin-top:10px;">
+        <span class="chip">Functions supported: IF, OR, EVEN, ROUNDUP, SQRT, CEILING</span>
+        <span class="chip">Cell-refs like C3, ranges not required in this sheet</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">Key Results</div>
+      <div id="results" class="kv"></div>
+      <div class="section-title" style="margin-top:16px;">Bill of Materials</div>
+      <table id="bom">
+        <thead>
+          <tr><th>Qty</th><th>Description</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <footer>Auto-generated from Excel formulas. If anything looks off, cross-check rows C22–C27 for nozzle & valve selection.</footer>
+    </section>
+  </div>
+
+<script>
+const MODEL = {"sheet": "Calculation", "inputs": [{"address": "C3", "label": "Conveyor Length in meter", "default": 172}, {"address": "C4", "label": "Conveyor Width  in meter", "default": 0.8}, {"address": "C5", "label": "Conveyor No of Belt", "default": 2}, {"address": "C7", "label": "The spacing between two spray nozzles shall not exceed 3 m, as per IS:15325:2020 clause 8.7.4.1", "default": 3}, {"address": "C8", "label": "No of spray nozzles shall consdridied at one location", "default": 2}, {"address": "C9", "label": "The system pressure shall be 1.4 to 3.5 bar as per IS:15325 clause 8.7.3. For better penetration, 2.1 bar pressure shall be considered at the hydraulically remotest point.", "default": 2.1}, {"address": "C10", "label": "No of Linear Heat Sensing Cable is considered for the conveyor, recommended on three sides: top, left, and right.", "default": 3}, {"address": "C12", "label": "Distance from deluge valve to main hydrant line in Meter", "default": 18}, {"address": "C15", "label": "Design Density 10.2 lpm/m2 as per IS:15325 Clause No 8.7.2", "default": 10.2}, {"address": "C21", "label": "Calculation for K-Factor Selection & Nozzle Flow", "default": "Nozzle Flow / \u221a (Pressure)"}, {"address": "C24", "label": "MVWS Nozzle Selected - Spray Angle", "default": "120 Deg or 140 Deg "}, {"address": "C29", "label": "Item Description", "default": "Qty"}], "formulas": [{"address": "C11", "label": "Approx. quantity in meter of LHS Cable from conveyor to deluge valve control panel", "formula": "=18"}, {"address": "C14", "label": "Total Area (In sq. meter) Formula = L x W x Number of Belts", "formula": "=(C3*C4*C5)"}, {"address": "C16", "label": "Theoretical Water Requirement [L/Min]", "formula": "=(C14*C15)"}, {"address": "C17", "label": "Theoretical Water Requirement [m^3/h]", "formula": "=(C16*0.06)"}, {"address": "C18", "label": "MW Water spray nozzle quantity with 5% extra.", "formula": "=EVEN(((ROUNDUP(C3/C7,0))*C8)*1.05)"}, {"address": "C19", "label": "Total Quantity in meter of Linear Heat Sensing Cable in Meter 10% extra.", "formula": "=EVEN((ROUNDUP(C3*C10,0))+(C11))*1.1"}, {"address": "C20", "label": "Theoretical Flow per Nozzle (L/Min):", "formula": "=(C16/C18)"}, {"address": "C22", "label": "K-Factor:", "formula": "=((C20)/(SQRT(C9)))"}, {"address": "C23", "label": "MVWS Nozzle Selected - K-Factor ", "formula": "=IF(C22<=18,18,IF(C22<=22,22,IF(C22<=26,26,IF(C22<=30,30,IF(C22<=35,35,IF(C22<=41,41,IF(C22<=51,51,IF(C22<=64,64,IF(C22<=79,79,91)))))))))"}, {"address": "C25", "label": "Actual Flow Based on K-Factor (L/min) = K-Factor \u00d7 \u221a Pressure \u00d7 Number of Nozzles", "formula": "=(C23*(SQRT(C9)*C18))"}, {"address": "C26", "label": "Actual Flow Provided Based on K-Factor (m^3/h):", "formula": "=(C25*0.06)"}, {"address": "C27", "label": "Deluge Valve Selection:", "formula": "=IF(OR(C26>1150,C26<10.01),\"Not Found\",IF(C26>=550.01,\"200 mm\",IF(C26>=200.01,\"150 mm\",IF(C26>=100.01,\"100 mm\",IF(C26>=50.01,\"80 mm\",\"50 mm\")))))"}, {"address": "C30", "label": "=C27 & \" Cast Iron Deluge Valve with Wet Pilot Basic Trim Assembly\"", "formula": "=IF(C27<>\"\",1,\"\")"}, {"address": "C31", "label": "=C27 & \" M.S Pipes Heavy C Class As Per IS: 1239 \"", "formula": "=(C12)"}, {"address": "C32", "label": "=C27& \" G.I. Pipes Heavy C Class As Per IS: 1239\"", "formula": "=CEILING(((C3*70%)+C11)*1.1,6)"}, {"address": "C33", "label": "=IF(B32=\"200 mm G.I. Pipes Heavy C Class As Per IS: 1239\",\"150 mm G.I. Pipes Heavy C Class As Per IS: 1239\",\n   IF(B32=\"150 mm G.I. Pipes Heavy C Class As Per IS: 1239\",\"100 mm G.I. Pipes Heavy C Class As Per IS: 1239\",\n   IF(B32=\"100 mm G.I. Pipes Heavy C Class As Per IS: 1239\",\"80 mm G.I. Pipes Heavy C Class As Per IS: 1239\",\n   IF(B32=\"80 mm G.I. Pipes Heavy C Class As Per IS: 1239\",\"65 mm G.I. Pipes Heavy C Class As Per IS: 1239\",\n   IF(B32=\"50 mm G.I. Pipes Heavy C Class As Per IS: 1239\",\"50 mm G.I. Pipes Heavy C Class As Per IS: 1239\",\"\")))))", "formula": "=CEILING(((C3*30%))*1.1,6)"}, {"address": "C34", "label": "32 mm G.I. Pipes Heavy C Class As Per IS: 1239", "formula": "=CEILING(IF(OR(C8=1,C8=2),0,IF(C8=3,0.4,\"\"))*(C3/C7)*1.1,6)"}, {"address": "C35", "label": "25 mm G.I. Pipes Heavy C Class As Per IS: 1239", "formula": "=CEILING((C3/C7)*(C8*1.8)*1.1,6)"}, {"address": "C36", "label": "=C27 &\" Cast Iron Wafer Type Butterfly Valve\"", "formula": "=(C30*4)"}, {"address": "C37", "label": "=C27&\" MS Y Type Strainers - Body : MS as per IS1239 (I)\"", "formula": "=(C30*1)"}, {"address": "C38", "label": "Medium Velocity Water Spray Nozzle Nickel Chrome Plated Brass 1/2\" BSPT", "formula": "=(C18)"}, {"address": "C39", "label": "Digital Linear Heat Detection Cable Alarm Temperature 70\u2070C", "formula": "=(C19)"}, {"address": "C40", "label": "Deluge Valve Control Panel Outdoor with Canopy and IP65 Protection ", "formula": "=(C30*1)"}, {"address": "C41", "label": "Pressure Switch with All Accessories. Range : 2-14 kg.", "formula": "=(C30*2)"}, {"address": "C42", "label": "24 VDC Solenoid Valve, Operating Pressure: 1 - 20 Bar, 1/2\" BSPT", "formula": "=(C30*1)"}, {"address": "C43", "label": "Monitor Module, if applicable", "formula": "=(C30*2)"}, {"address": "C44", "label": "Control  Nodule, if applicable", "formula": "=(C30*1)"}, {"address": "C45", "label": "12V - 10 AMPS Battery ", "formula": "=(C30*2)"}, {"address": "C46", "label": "Cables and Accessories", "formula": "=(C30*1)"}, {"address": "C47", "label": "Other Hardware Like Nut Bolts, U Clamps Anchor Fastener, Flanges & Green Gasket Etc.", "formula": "=(C30*1)"}, {"address": "C48", "label": "MS Support Made of L Angle, C Channel, & MS Plate Etc.", "formula": "=((C31+C32+C33+C34+C35)/3)*3.5"}]};
+
+// Helper: Excel-like evaluator with subset functions used in this sheet
+function makeEvaluator(state) {
+  const fns = {
+    IF: (cond, a, b) => cond ? a : b,
+    OR: (...args) => args.some(Boolean),
+    EVEN: (x) => {
+      const n = Math.ceil(Math.abs(x));
+      const even = n % 2 === 0 ? n : n + 1;
+      return x < 0 ? -even : even;
+    },
+    ROUNDUP: (x, d=0) => {
+      const p = Math.pow(10, d);
+      return Math.sign(x) * Math.ceil(Math.abs(x) * p) / p;
+    },
+    SQRT: (x) => Math.sqrt(x),
+    CEILING: (x, sig=1) => {
+      const s = sig || 1;
+      return Math.ceil(x / s) * s;
+    },
+  };
+
+  function getCell(addr) {
+    return state[addr] ?? 0;
+  }
+
+  function translate(formula) {
+    // Remove leading '='
+    let f = formula.trim();
+    if (f.startsWith('=')) f = f.slice(1);
+
+    // Replace cell refs like C12 with get('C12')
+    f = f.replace(/\b([A-Z]+\d+)\b/g, (m, a) => "getCell('" + a + "')");
+
+    // Replace function names with fns.IF(...), etc.
+    f = f.replace(/\b(IF|OR|EVEN|ROUNDUP|SQRT|CEILING)\s*\(/g, (m, name) => "fns." + name + "(");
+
+    // Replace Excel ^ with JS **
+    f = f.replace(/\^/g, '**');
+
+    return f;
+  }
+
+  return function evalFormula(formula) {
+    const compiled = translate(formula);
+    try {
+      const fn = new Function('state','getCell','fns',"return (" + compiled + ");");
+      return fn(state, getCell, fns);
+    } catch (e) {
+      console.warn('Eval error for', formula, ' -> ', e);
+      return NaN;
+    }
+  }
+}
+
+// UI build
+const inputsDiv = document.querySelector('#inputs');
+const resultsDiv = document.querySelector('#results');
+const bomBody = document.querySelector('#bom tbody');
+const resetBtn = document.querySelector('#reset');
+const calcBtn = document.querySelector('#calc');
+const pdfBtn = document.querySelector('#pdf');
+
+// Build inputs from MODEL.inputs (Column C without formulas)
+const defaultState = {}
+MODEL.inputs.forEach(inp => {
+  defaultState[inp.address] = (typeof inp.default === 'number') ? inp.default : (parseFloat(inp.default) || 0);
+});
+
+let state = JSON.parse(JSON.stringify(defaultState));
+
+function renderInputs() {
+  inputsDiv.innerHTML = '';
+  MODEL.inputs.forEach(inp => {
+    const id = inp.address;
+    const wrap = document.createElement('div');
+    wrap.className = 'input';
+    const label = document.createElement('label');
+    label.textContent = inp.label || id;
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.step = 'any';
+    input.value = state[id] ?? '';
+    input.oninput = (e) => {
+      const v = parseFloat(e.target.value);
+      state[id] = Number.isFinite(v) ? v : 0;
+    };
+    wrap.appendChild(label);
+    wrap.appendChild(input);
+    inputsDiv.appendChild(wrap);
+  });
+}
+
+function compute() {
+  // Start with current inputs
+  const st = {...state};
+  const evalF = makeEvaluator(st);
+
+  // Evaluate formulas in the order they appear in the sheet
+  MODEL.formulas.forEach(f => {
+    st[f.address] = evalF(f.formula);
+  });
+
+  return st;
+}
+
+function formatNumber(x) {
+  if (x == null || Number.isNaN(x)) return '';
+  const n = Number(x);
+  return Math.abs(n) >= 1000 ? n.toLocaleString(undefined, {maximumFractionDigits: 2}) : n.toFixed(2);
+}
+
+function renderResults(st) {
+  resultsDiv.innerHTML = '';
+  const keysToShow = ['C16','C17','C18','C19','C20','C22','C23','C25','C26','C27'];
+  const labels = Object.fromEntries(MODEL.formulas.map(f => [f.address, f.label]));
+
+  keysToShow.forEach(k => {
+    const box = document.createElement('div');
+    const label = document.createElement('div');
+    label.className = 'muted';
+    label.textContent = labels[k] || k;
+    const val = document.createElement('div');
+    const v = st[k];
+    val.textContent = (typeof v === 'string') ? v : formatNumber(v);
+    box.appendChild(label); box.appendChild(val);
+    resultsDiv.appendChild(box);
+  });
+
+  // BOM rows (quantities)
+  const bom = [
+    {qty: 'C30', desc: 'Cast Iron Deluge Valve with Wet Pilot Basic Trim Assembly'},
+    {qty: 'C31', desc: 'Cast Iron Strainer'},
+    {qty: 'C36', desc: 'Cast Iron Wafer Type Butterfly Valve'},
+    {qty: 'C38', desc: 'Medium Velocity Water Spray Nozzle Nickel Chrome Plated Brass 1/2\" BSPT'},
+    {qty: 'C40', desc: 'Deluge Valve Control Panel Outdoor with Canopy and IP65 Protection'},
+    {qty: 'C42', desc: '24 VDC Solenoid Valve, Operating Pressure: 1 - 20 Bar, 1/2\" BSPT'},
+  ];
+
+  bomBody.innerHTML = '';
+  bom.forEach(item => {
+    const q = st[item.qty];
+    if (q !== '' && !(typeof q === 'number' && (Number.isNaN(q) || q === 0))) {
+      const tr = document.createElement('tr');
+      const tdq = document.createElement('td');
+      tdq.textContent = (typeof q === 'string') ? q : formatNumber(q);
+      const tdd = document.createElement('td');
+      tdd.textContent = item.desc;
+      tr.appendChild(tdq); tr.appendChild(tdd);
+      bomBody.appendChild(tr);
+    }
+  });
+}
+
+function run() {
+  const st = compute();
+  renderResults(st);
+}
+
+resetBtn.onclick = () => { state = JSON.parse(JSON.stringify(defaultState)); renderInputs(); run(); };
+calcBtn.onclick = () => run();
+
+// PDF (client-side print) - use print dialog
+pdfBtn.onclick = () => { window.print(); };
+
+// Initial render
+renderInputs();
+run();
+</script>
+</body>
+</html>
